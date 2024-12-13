@@ -51,27 +51,31 @@ func TestAddGetDelete(t *testing.T) {
 	defer db.Close()
 
 	require.NoError(t, setupDatabase(db))
-	
+
 	store := NewParcelStore(db)
 	parcel := getTestParcel()
 
 	// add
 	parcel.Number, err = store.Add(parcel)
-
 	require.NoError(t, err)
 	require.NotEmpty(t, parcel.Number)
 
 	// get
 	stored, err := store.Get(parcel.Number)
-
 	require.NoError(t, err)
 	require.Equal(t, parcel, stored)
 
 	// delete
 	err = store.Delete(parcel.Number)
+	require.NoError(t, err)
 
+	// повторное чтение после удаления
 	stored, err = store.Get(parcel.Number)
-	require.Equal(t, sql.ErrNoRows, err)
+
+	// Проверяем наличие ошибки и её тип
+	if err == nil || err != sql.ErrNoRows {
+		t.Fatalf("expected sql.ErrNoRows, got: %v, stored: %v", err, stored)
+	}
 }
 
 // TestSetAddress проверяет обновление адреса
