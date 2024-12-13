@@ -18,6 +18,21 @@ var (
 	randRange = rand.New(randSource)
 )
 
+// setupDatabase инициализирует таблицу parcel в базе данных
+func setupDatabase(db *sql.DB) error {
+	query := `
+	CREATE TABLE IF NOT EXISTS parcel (
+		number INTEGER PRIMARY KEY AUTOINCREMENT,
+		client INTEGER NOT NULL,
+		status TEXT NOT NULL,
+		address TEXT NOT NULL,
+		created_at TEXT NOT NULL
+	);
+	`
+	_, err := db.Exec(query)
+	return err
+}
+
 // getTestParcel возвращает тестовую посылку
 func getTestParcel() Parcel {
 	return Parcel{
@@ -32,10 +47,11 @@ func getTestParcel() Parcel {
 func TestAddGetDelete(t *testing.T) {
 	// prepare
 	db, err := sql.Open("sqlite", "tracker.db")
-	if err != nil {
-		require.NoError(t, err)
-	}
+	require.NoError(t, err)
 	defer db.Close()
+
+	require.NoError(t, setupDatabase(db))
+	
 	store := NewParcelStore(db)
 	parcel := getTestParcel()
 
@@ -62,10 +78,13 @@ func TestAddGetDelete(t *testing.T) {
 func TestSetAddress(t *testing.T) {
 	// prepare
 	db, err := sql.Open("sqlite", "tracker.db")
-	if err != nil {
-		require.NoError(t, err)
-	}
+	require.NoError(t, err)
 	defer db.Close()
+
+	// Инициализация базы данных
+	err = setupDatabase(db)
+	require.NoError(t, err)
+
 	store := NewParcelStore(db)
 	parcel := getTestParcel()
 
@@ -92,10 +111,13 @@ func TestSetAddress(t *testing.T) {
 func TestSetStatus(t *testing.T) {
 	// prepare
 	db, err := sql.Open("sqlite", "tracker.db")
-	if err != nil {
-		require.NoError(t, err)
-	}
+	require.NoError(t, err)
 	defer db.Close()
+
+	// Инициализация базы данных
+	err = setupDatabase(db)
+	require.NoError(t, err)
+
 	store := NewParcelStore(db)
 	parcel := getTestParcel()
 
@@ -121,10 +143,11 @@ func TestSetStatus(t *testing.T) {
 func TestGetByClient(t *testing.T) {
 	// prepare
 	db, err := sql.Open("sqlite", "tracker.db")
-	if err != nil {
-		require.NoError(t, err)
-	}
+	require.NoError(t, err)
 	defer db.Close()
+
+	require.NoError(t, setupDatabase(db))
+
 	store := NewParcelStore(db)
 
 	parcels := []Parcel{
